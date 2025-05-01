@@ -16,12 +16,22 @@ class InferenceTrack(VideoStreamTrack):
         self.websocket = websocket
         self.falling_x = 320
         self.falling_y = 100
+        self.last_time = None
+        self.speed = 200  # 픽셀/초
 
     def set_target(self, x, y):
         self.falling_x = x
         self.falling_y = y
 
     async def recv(self):
+        from time import time
+        now = time()
+        if self.last_time is None:
+            self.last_time = now
+        dt = now - self.last_time
+        self.last_time = now
+        self.falling_y += self.speed * dt
+
         frame = await self.track.recv()
         img = frame.to_ndarray(format="bgr24")
         img = cv2.flip(img, 1)
@@ -57,15 +67,15 @@ async def handle_offer(sdp, websocket):
 
     @pc.on("datachannel")
     def on_datachannel(channel):
-        print("📨 DataChannel opened")
+        print("📨 datachannel opened")
         @channel.on("message")
         def on_message(msg):
             try:
                 target = json.loads(msg)
                 if "x" in target and "y" in target and "track" in track_ref:
                     track_ref["track"].set_target(target["x"], target["y"])
-            except Exception as e:
-                print("DataChannel 처리 오류:", e)
+            except:
+                pass
 
     await pc.setRemoteDescription(RTCSessionDescription(sdp=sdp, type="offer"))
     answer = await pc.createAnswer()
