@@ -1,0 +1,173 @@
+<!-- 파일: static/test.html -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>AR 손 게임</title>
+    <style>
+      #container {
+        position: relative;
+        width: 640px;
+        height: 480px;
+        border: 2px solid #333;
+      }
+      #video,
+      #gameCanvas,
+      #landmarkCanvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        transform: scaleX(-1); /* 화면 표시만 뒤집기 */
+      }
+      #score {
+        font-size: 18px;
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>물체 맞추기 게임 🎯</h2>
+    <div id="container">
+      <video id="video" autoplay playsinline width="640" height="480"></video>
+      <canvas id="gameCanvas" width="640" height="480"></canvas>
+      <canvas id="landmarkCanvas" width="640" height="480"></canvas>
+    </div>
+    <p id="score">점수: 0</p>
+
+    <script>
+      const video = document.getElementById("video");
+      const gameCanvas = document.getElementById("gameCanvas");
+      const gameCtx = gameCanvas.getContext("2d");
+      const landmarkCanvas = document.getElementById("landmarkCanvas");
+      const landmarkCtx = landmarkCanvas.getContext("2d");
+      const scoreElem = document.getElementById("score");
+
+      let score = 0;
+      let fallingY = -50;
+      let fallingX = Math.random() * 580 + 30;
+      let lastTime = performance.now();
+      const speed = 200;
+
+      async function start() {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+        });
+        video.srcObject = stream;
+
+        const socket = new WebSocket("ws://localhost:8000/ws/hand");
+
+        socket.onmessage = (event) => {
+          const data = JSON.parse(event.data);
+          if (data.hit) {
+            score++;
+            scoreElem.innerText = `점수: ${score}`;
+            resetFallingObject();
+          }
+
+          // 손 관절 시각화
+          landmarkCtx.clearRect(
+            0,
+            0,
+            landmarkCanvas.width,
+            landmarkCanvas.height
+          );
+          const connections = [
+            [0, 1],
+            [1, 2],
+            [2, 3],
+            [3, 4],
+            [0, 5],
+            [5, 6],
+            [6, 7],
+            [7, 8],
+            [0, 9],
+            [9, 10],
+            [10, 11],
+            [11, 12],
+            [0, 13],
+            [13, 14],
+            [14, 15],
+            [15, 16],
+            [0, 17],
+            [17, 18],
+            [18, 19],
+            [19, 20],
+          ];
+
+          data.landmarks.forEach((p) => {
+            const x = p.x * landmarkCanvas.width;
+            const y = p.y * landmarkCanvas.height;
+            landmarkCtx.beginPath();
+            landmarkCtx.arc(x, y, 2, 0, 2 * Math.PI);
+            landmarkCtx.fillStyle = "red";
+            landmarkCtx.fill();
+          });
+          connections.forEach(([s, e]) => {
+            const a = data.landmarks[s],
+              b = data.landmarks[e];
+            if (a && b) {
+              landmarkCtx.beginPath();
+              landmarkCtx.moveTo(
+                a.x * landmarkCanvas.width,
+                a.y * landmarkCanvas.height
+              );
+              landmarkCtx.lineTo(
+                b.x * landmarkCanvas.width,
+                b.y * landmarkCanvas.height
+              );
+              landmarkCtx.strokeStyle = "lime";
+              landmarkCtx.lineWidth = 1.5;
+              landmarkCtx.stroke();
+            }
+          });
+        };
+
+        const hiddenCanvas = document.createElement("canvas");
+        const hiddenCtx = hiddenCanvas.getContext("2d");
+        hiddenCanvas.width = 640;
+        hiddenCanvas.height = 480;
+
+        setInterval(() => {
+          // 프레임 캡처
+          hiddenCtx.drawImage(video, 0, 0, 640, 480);
+          const frame = hiddenCanvas.toDataURL("image/jpeg");
+          if (socket.readyState === WebSocket.OPEN) {
+            socket.send(
+              JSON.stringify({
+                image: frame,
+                target: { x: fallingX, y: fallingY },
+              })
+            );
+          }
+        }, 150);
+
+        animate();
+      }
+
+      function resetFallingObject() {
+        fallingY = -50;
+        fallingX = Math.random() * 580 + 30;
+      }
+
+      function animate() {
+        const now = performance.now();
+        const delta = (now - lastTime) / 1000;
+        lastTime = now;
+
+        requestAnimationFrame(animate);
+
+        // 수정된 변수명 사용
+        gameCtx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
+        gameCtx.beginPath();
+        gameCtx.arc(fallingX, fallingY, 20, 0, Math.PI * 2);
+        gameCtx.fillStyle = "red";
+        gameCtx.fill();
+
+        fallingY += speed * delta;
+        if (fallingY > 480) resetFallingObject();
+      }
+
+      start();
+    </script>
+  </body>
+</html>
