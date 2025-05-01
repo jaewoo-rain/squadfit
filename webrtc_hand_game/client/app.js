@@ -11,7 +11,7 @@ let score = 0;
 let fallingX = Math.random() * 580 + 30;
 let fallingY = -50;
 const radius = 20;
-const fallSpeed = 100; // 픽셀/초 단위 (낮을수록 느림)
+const fallSpeed = 200; // 픽셀/초 단위 (낮을수록 느림)
 
 // WebSocket signaling
 // const signalingSocket = new WebSocket("ws://localhost:8000/ws/signaling");

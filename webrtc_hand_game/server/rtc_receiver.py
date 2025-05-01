@@ -16,22 +16,12 @@ class InferenceTrack(VideoStreamTrack):
         self.websocket = websocket
         self.falling_x = 320
         self.falling_y = 100
-        self.last_time = None
-        self.speed = 10  # 픽셀/초
 
     def set_target(self, x, y):
         self.falling_x = x
         self.falling_y = y
 
     async def recv(self):
-        from time import time
-        now = time()
-        if self.last_time is None:
-            self.last_time = now
-        dt = now - self.last_time
-        self.last_time = now
-        self.falling_y += self.speed * dt
-
         frame = await self.track.recv()
         img = frame.to_ndarray(format="bgr24")
         img = cv2.flip(img, 1)
@@ -50,7 +40,10 @@ class InferenceTrack(VideoStreamTrack):
                     hit = True
                     break
 
-        await self.websocket.send_text(json.dumps({ "type": "hit", "hit": hit }))
+        await self.websocket.send_text(json.dumps({
+            "type": "hit",
+            "hit": hit
+        }))
         return frame
 
 async def handle_offer(sdp, websocket):
