@@ -2,51 +2,42 @@ const video = document.getElementById("video");
 const scoreElem = document.getElementById("score");
 
 let peerConnection;
+let dataChannel;
 let score = 0;
+let fallingX = Math.random() * 580 + 30;
+let fallingY = -50;
+const velocity = 100;
+let lastTime = performance.now();
 
-// WebSocket으로 signaling 서버에 연결
 // const signalingSocket = new WebSocket("ws://localhost:8000/ws/signaling");
 const signalingSocket = new WebSocket("ws://192.168.0.4:8000/ws/signaling");
 
-// WebRTC 설정
-const config = {
-  iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
-};
-
-// signaling 연결 성공 시
 signalingSocket.onopen = async () => {
-  console.log("✅ signaling 서버 연결됨");
+  peerConnection = new RTCPeerConnection({
+    iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
+  });
 
-  peerConnection = new RTCPeerConnection(config);
+  dataChannel = peerConnection.createDataChannel("target");
 
-  // 서버에서 보낸 ICE candidate 수신
-  signalingSocket.onmessage = async (message) => {
-    const data = JSON.parse(message.data);
-
+  signalingSocket.onmessage = async (event) => {
+    const data = JSON.parse(event.data);
     if (data.type === "answer") {
       await peerConnection.setRemoteDescription(new RTCSessionDescription(data));
     } else if (data.type === "candidate") {
-      try {
-        await peerConnection.addIceCandidate(data.candidate);
-      } catch (e) {
-        console.error("ICE candidate 오류:", e);
-      }
-    } else if (data.type === "hit") {
-      // 추론 결과 수신
-      if (data.hit) {
-        score++;
-        scoreElem.innerText = `점수: ${score}`;
-      }
+      await peerConnection.addIceCandidate(data);
+    } else if (data.type === "hit" && data.hit) {
+      score++;
+      scoreElem.innerText = `점수: ${score}`;
+      resetTarget();
     }
   };
 
-  peerConnection.onicecandidate = (event) => {
-    if (event.candidate) {
-      signalingSocket.send(JSON.stringify({ type: "candidate", candidate: event.candidate }));
+  peerConnection.onicecandidate = (e) => {
+    if (e.candidate) {
+      signalingSocket.send(JSON.stringify({ type: "candidate", ...e.candidate }));
     }
   };
 
-  // 로컬 비디오 스트림 설정
   const stream = await navigator.mediaDevices.getUserMedia({ video: true });
   stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
   video.srcObject = stream;
@@ -55,4 +46,28 @@ signalingSocket.onopen = async () => {
   await peerConnection.setLocalDescription(offer);
 
   signalingSocket.send(JSON.stringify({ type: "offer", sdp: offer.sdp }));
+  animate();
+  sendTargetLoop();
 };
+
+function resetTarget() {
+  fallingX = Math.random() * 580 + 30;
+  fallingY = -50;
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+  const now = performance.now();
+  const delta = (now - lastTime) / 1000;
+  lastTime = now;
+  fallingY += velocity * delta;
+  if (fallingY > 480) resetTarget();
+}
+
+function sendTargetLoop() {
+  setInterval(() => {
+    if (dataChannel?.readyState === "open") {
+      dataChannel.send(JSON.stringify({ type: "target", x: fallingX, y: fallingY }));
+    }
+  }, 100);
+}

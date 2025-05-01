@@ -4,8 +4,7 @@ import numpy as np
 import cv2
 import mediapipe as mp
 
-from aiortc import RTCPeerConnection, RTCSessionDescription, VideoStreamTrack
-from aiortc.contrib.media import MediaBlackhole
+from aiortc import RTCPeerConnection, RTCSessionDescription, VideoStreamTrack, RTCIceCandidate
 from av import VideoFrame
 
 mp_hands = mp.solutions.hands
@@ -17,8 +16,12 @@ class InferenceTrack(VideoStreamTrack):
         super().__init__()
         self.track = track
         self.websocket = websocket
-        self.falling_x = 320  # 중앙
+        self.falling_x = 320
         self.falling_y = 100
+
+    def set_target(self, x, y):
+        self.falling_x = x
+        self.falling_y = y
 
     async def recv(self):
         frame = await self.track.recv()
@@ -41,18 +44,31 @@ class InferenceTrack(VideoStreamTrack):
 
         await self.websocket.send_text(json.dumps({"type": "hit", "hit": hit}))
         return frame
-        
 
 async def handle_offer(sdp, websocket):
     pc = RTCPeerConnection()
-    media = MediaBlackhole()
+    inference = None
 
     @pc.on("track")
     def on_track(track):
-        print("📹 track received")
+        nonlocal inference
+        print("\U0001f4f9 track received")
         if track.kind == "video":
             inference = InferenceTrack(track, websocket)
             pc.addTrack(inference)
+
+    @pc.on("datachannel")
+    def on_datachannel(channel):
+        print("📡 DataChannel opened")
+
+        @channel.on("message")
+        def on_message(message):
+            try:
+                data = json.loads(message)
+                if data["type"] == "target" and inference:
+                    inference.set_target(data["x"], data["y"])
+            except Exception as e:
+                print("DataChannel error:", e)
 
     await pc.setRemoteDescription(RTCSessionDescription(sdp=sdp, type="offer"))
     answer = await pc.createAnswer()
@@ -63,10 +79,15 @@ async def handle_offer(sdp, websocket):
         "sdp": pc.localDescription.sdp
     }))
 
-    return pc, asyncio.Queue()
+    return pc
 
-
-async def add_ice_candidate(pc, candidate):
-    from aiortc import RTCIceCandidate
-    ice = RTCIceCandidate(**candidate)
-    await pc.addIceCandidate(ice)
+async def add_ice_candidate(pc, candidate_data):
+    if "candidate" in candidate_data and "sdpMid" in candidate_data and "sdpMLineIndex" in candidate_data:
+        ice = RTCIceCandidate(
+            candidate=candidate_data["candidate"],
+            sdpMid=candidate_data["sdpMid"],
+            sdpMLineIndex=candidate_data["sdpMLineIndex"]
+        )
+        await pc.addIceCandidate(ice)
+    else:
+        print("⚠️ 잘못된 ICE candidate 데이터:", candidate_data)
