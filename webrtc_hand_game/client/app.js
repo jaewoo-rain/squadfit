@@ -34,8 +34,13 @@ signalingSocket.onopen = async () => {
 
   peerConnection.onicecandidate = (e) => {
     if (e.candidate) {
-      signalingSocket.send(JSON.stringify({ type: "candidate", ...e.candidate }));
-    }
+        signalingSocket.send(JSON.stringify({
+            type: "candidate",
+            candidate: e.candidate.candidate,
+            sdpMid: e.candidate.sdpMid,
+            sdpMLineIndex: e.candidate.sdpMLineIndex
+          }));
+              }
   };
 
   const stream = await navigator.mediaDevices.getUserMedia({ video: true });
