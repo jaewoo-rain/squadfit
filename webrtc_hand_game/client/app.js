@@ -7,10 +7,10 @@ let peerConnection;
 let dataChannel;
 let score = 0;
 
-const signalingSocket = new WebSocket("ws://localhost:8000/ws/signaling");
+const signalingSocket = new WebSocket("ws://192.168.0.4:8000/ws/signaling");
 
 const config = {
-  iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
+  iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
 };
 
 let fallingX = Math.random() * 600 + 20;
@@ -52,7 +52,9 @@ signalingSocket.onopen = async () => {
   // ICE 처리
   peerConnection.onicecandidate = (event) => {
     if (event.candidate) {
-      signalingSocket.send(JSON.stringify({ type: "candidate", ...event.candidate }));
+      signalingSocket.send(
+        JSON.stringify({ type: "candidate", ...event.candidate })
+      );
     }
   };
 
@@ -67,7 +69,7 @@ signalingSocket.onopen = async () => {
   };
 
   const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-  stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
+  stream.getTracks().forEach((track) => peerConnection.addTrack(track, stream));
   video.srcObject = stream;
 
   const offer = await peerConnection.createOffer();
