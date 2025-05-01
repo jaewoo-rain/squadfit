@@ -1,10 +1,10 @@
 from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
-from rtc_receiver import handle_offer, add_ice_candidate
-import json
+from server.rtc_receiver import handle_offer, add_ice_candidate
 
 app = FastAPI()
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
+
 connections = {}
 
 @app.websocket("/ws/signaling")
@@ -12,21 +12,22 @@ async def signaling(websocket: WebSocket):
     await websocket.accept()
     print("📡 signaling client connected")
     pc = None
-
     try:
         while True:
-            message = await websocket.receive_text()
-            data = json.loads(message)
+            data = await websocket.receive_text()
+            msg = json.loads(data)
 
-            if data["type"] == "offer":
-                pc = await handle_offer(data["sdp"], websocket)
+            if msg["type"] == "offer":
+                pc, _ = await handle_offer(msg["sdp"], websocket)
                 connections[websocket] = pc
-            elif data["type"] == "candidate":
-                await add_ice_candidate(pc, data)
 
+            elif msg["type"] == "candidate":
+                if pc:
+                    await add_ice_candidate(pc, msg)
     except Exception as e:
         print("❌ WebSocket 종료:", e)
     finally:
-        if websocket in connections:
-            await connections[websocket].close()
-            del connections[websocket]
+        await websocket.close()
+        if pc:
+            await pc.close()
+        connections.pop(websocket, None)

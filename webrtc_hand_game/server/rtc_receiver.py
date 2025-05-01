@@ -1,10 +1,8 @@
-import asyncio
 import json
 import numpy as np
 import cv2
 import mediapipe as mp
-
-from aiortc import RTCPeerConnection, RTCSessionDescription, VideoStreamTrack, RTCIceCandidate
+from aiortc import RTCPeerConnection, RTCSessionDescription, RTCIceCandidate, VideoStreamTrack
 from av import VideoFrame
 
 mp_hands = mp.solutions.hands
@@ -18,10 +16,6 @@ class InferenceTrack(VideoStreamTrack):
         self.websocket = websocket
         self.falling_x = 320
         self.falling_y = 100
-
-    def set_target(self, x, y):
-        self.falling_x = x
-        self.falling_y = y
 
     async def recv(self):
         frame = await self.track.recv()
@@ -37,7 +31,7 @@ class InferenceTrack(VideoStreamTrack):
                 index = hand.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP]
                 x = int(index.x * img.shape[1])
                 y = int(index.y * img.shape[0])
-                dist = ((x - self.falling_x) ** 2 + (y - self.falling_y) ** 2) ** 0.5
+                dist = ((x - self.falling_x)**2 + (y - self.falling_y)**2)**0.5
                 if dist < HIT_RADIUS:
                     hit = True
                     break
@@ -45,49 +39,46 @@ class InferenceTrack(VideoStreamTrack):
         await self.websocket.send_text(json.dumps({"type": "hit", "hit": hit}))
         return frame
 
+    def set_target(self, x, y):
+        self.falling_x = x
+        self.falling_y = y
+
 async def handle_offer(sdp, websocket):
     pc = RTCPeerConnection()
-    inference = None
+    track_ref = {}
 
     @pc.on("track")
     def on_track(track):
-        nonlocal inference
-        print("\U0001f4f9 track received")
+        print("📹 track received")
         if track.kind == "video":
             inference = InferenceTrack(track, websocket)
+            track_ref["track"] = inference
             pc.addTrack(inference)
 
     @pc.on("datachannel")
     def on_datachannel(channel):
-        print("📡 DataChannel opened")
-
+        print("📨 datachannel opened")
         @channel.on("message")
-        def on_message(message):
+        def on_message(msg):
             try:
-                data = json.loads(message)
-                if data["type"] == "target" and inference:
-                    inference.set_target(data["x"], data["y"])
-            except Exception as e:
-                print("DataChannel error:", e)
+                target = json.loads(msg)
+                if "x" in target and "y" in target and "track" in track_ref:
+                    track_ref["track"].set_target(target["x"], target["y"])
+            except:
+                pass
 
     await pc.setRemoteDescription(RTCSessionDescription(sdp=sdp, type="offer"))
     answer = await pc.createAnswer()
     await pc.setLocalDescription(answer)
 
-    await websocket.send_text(json.dumps({
-        "type": "answer",
-        "sdp": pc.localDescription.sdp
-    }))
+    await websocket.send_text(json.dumps({"type": "answer", "sdp": pc.localDescription.sdp}))
+    return pc, track_ref
 
-    return pc
-
-async def add_ice_candidate(pc, candidate_data):
-    if "candidate" in candidate_data and "sdpMid" in candidate_data and "sdpMLineIndex" in candidate_data:
+async def add_ice_candidate(pc, msg):
+    if "candidate" in msg and "sdpMid" in msg and "sdpMLineIndex" in msg:
         ice = RTCIceCandidate(
-            candidate=candidate_data["candidate"],
-            sdpMid=candidate_data["sdpMid"],
-            sdpMLineIndex=candidate_data["sdpMLineIndex"]
+            candidate=msg["candidate"],
+            sdpMid=msg["sdpMid"],
+            sdpMLineIndex=msg["sdpMLineIndex"]
         )
         await pc.addIceCandidate(ice)
-    else:
-        print("⚠️ 잘못된 ICE candidate 데이터:", candidate_data)
