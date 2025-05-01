@@ -9,7 +9,7 @@ let fallingX = Math.random() * 580 + 30;
 const velocity = 100; // px/sec 기준 속도
 let lastTime = performance.now();
 
-const ws = new WebSocket("ws://localhost:8000/ws/result");
+const ws = new WebSocket("ws://192.168.0.4:8000/ws/result");
 
 navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
   video.srcObject = stream;

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>WebRTC Hand Game</title>
+    <style>
+      canvas,
+      video {
+        position: absolute;
+        top: 0;
+        left: 0;
+        transform: scaleX(-1); /* 좌우 반전 */
+      }
+      #container {
+        position: relative;
+        width: 640px;
+        height: 480px;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>손으로 떨어지는 물체 맞추기 게임 🎮</h2>
+    <div id="container">
+      <video
+        id="video"
+        autoplay
+        muted
+        playsinline
+        width="640"
+        height="480"
+      ></video>
+      <canvas id="canvas" width="640" height="480"></canvas>
+    </div>
+    <p id="score">점수: 0</p>
+    <script src="app.js"></script>
+  </body>
+</html>
