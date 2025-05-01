@@ -21,7 +21,7 @@ signalingSocket.onopen = async () => {
   console.log("✅ signaling 서버 연결됨");
 
   peerConnection = new RTCPeerConnection({
-    iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
+    iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
   });
 
   // DataChannel 생성
@@ -37,7 +37,9 @@ signalingSocket.onopen = async () => {
   signalingSocket.onmessage = async (msg) => {
     const data = JSON.parse(msg.data);
     if (data.type === "answer") {
-      await peerConnection.setRemoteDescription(new RTCSessionDescription(data));
+      await peerConnection.setRemoteDescription(
+        new RTCSessionDescription(data)
+      );
     } else if (data.type === "candidate") {
       if (data.candidate) {
         await peerConnection.addIceCandidate(data.candidate);
@@ -53,18 +55,20 @@ signalingSocket.onopen = async () => {
 
   peerConnection.onicecandidate = (event) => {
     if (event.candidate) {
-      signalingSocket.send(JSON.stringify({
-        type: "candidate",
-        candidate: event.candidate,
-        sdpMid: event.candidate.sdpMid,
-        sdpMLineIndex: event.candidate.sdpMLineIndex
-      }));
+      signalingSocket.send(
+        JSON.stringify({
+          type: "candidate",
+          candidate: event.candidate,
+          sdpMid: event.candidate.sdpMid,
+          sdpMLineIndex: event.candidate.sdpMLineIndex,
+        })
+      );
     }
   };
 
   // 카메라 설정 및 연결
   const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-  stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
+  stream.getTracks().forEach((track) => peerConnection.addTrack(track, stream));
   video.srcObject = stream;
 
   const offer = await peerConnection.createOffer();
