@@ -25,7 +25,7 @@ async def result_socket(websocket: WebSocket):
             target_x = parsed["target"]["x"]
             target_y = parsed["target"]["y"]
 
-            frame = cv2.flip(frame, 1)  # ✅ 좌우 반전
+            # frame = cv2.flip(frame, 1)  # ✅ 좌우 반전
             rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             results = hand_model.process(rgb)
 
