@@ -78,10 +78,26 @@ async def handle_offer(sdp, websocket):
     return pc, track_ref
 
 async def add_ice_candidate(pc, msg):
-    if "candidate" in msg and "sdpMid" in msg and "sdpMLineIndex" in msg:
-        ice = RTCIceCandidate(
-            candidate=msg["candidate"],
-            sdpMid=msg["sdpMid"],
-            sdpMLineIndex=msg["sdpMLineIndex"]
-        )
-        await pc.addIceCandidate(ice)
+    if "candidate" in msg:
+        candidate = msg["candidate"]
+
+        # 클라이언트가 nested 구조로 보낼 경우 처리
+        if isinstance(candidate, dict):
+            candidate_str = candidate.get("candidate")
+            sdp_mid = candidate.get("sdpMid")
+            sdp_mline_index = candidate.get("sdpMLineIndex")
+        else:
+            # 일부 브라우저는 flat 구조로 보낼 수도 있음
+            candidate_str = msg.get("candidate")
+            sdp_mid = msg.get("sdpMid")
+            sdp_mline_index = msg.get("sdpMLineIndex")
+
+        if candidate_str and sdp_mid is not None and sdp_mline_index is not None:
+            ice = RTCIceCandidate(
+                candidate=candidate_str,
+                sdpMid=sdp_mid,
+                sdpMLineIndex=sdp_mline_index
+            )
+            await pc.addIceCandidate(ice)
+        else:
+            print("⚠️ 잘못된 ICE candidate 구조:", msg)
