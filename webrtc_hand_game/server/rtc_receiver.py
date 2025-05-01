@@ -1,6 +1,6 @@
 import json
-import numpy as np
 import cv2
+import numpy as np
 import mediapipe as mp
 from aiortc import RTCPeerConnection, RTCSessionDescription, RTCIceCandidate, VideoStreamTrack
 from av import VideoFrame
@@ -17,6 +17,10 @@ class InferenceTrack(VideoStreamTrack):
         self.falling_x = 320
         self.falling_y = 100
 
+    def set_target(self, x, y):
+        self.falling_x = x
+        self.falling_y = y
+
     async def recv(self):
         frame = await self.track.recv()
         img = frame.to_ndarray(format="bgr24")
@@ -31,17 +35,13 @@ class InferenceTrack(VideoStreamTrack):
                 index = hand.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP]
                 x = int(index.x * img.shape[1])
                 y = int(index.y * img.shape[0])
-                dist = ((x - self.falling_x)**2 + (y - self.falling_y)**2)**0.5
+                dist = ((x - self.falling_x) ** 2 + (y - self.falling_y) ** 2) ** 0.5
                 if dist < HIT_RADIUS:
                     hit = True
                     break
 
-        await self.websocket.send_text(json.dumps({"type": "hit", "hit": hit}))
+        await self.websocket.send_text(json.dumps({ "type": "hit", "hit": hit }))
         return frame
-
-    def set_target(self, x, y):
-        self.falling_x = x
-        self.falling_y = y
 
 async def handle_offer(sdp, websocket):
     pc = RTCPeerConnection()
@@ -57,21 +57,21 @@ async def handle_offer(sdp, websocket):
 
     @pc.on("datachannel")
     def on_datachannel(channel):
-        print("📨 datachannel opened")
+        print("📨 DataChannel opened")
         @channel.on("message")
         def on_message(msg):
             try:
                 target = json.loads(msg)
                 if "x" in target and "y" in target and "track" in track_ref:
                     track_ref["track"].set_target(target["x"], target["y"])
-            except:
-                pass
+            except Exception as e:
+                print("DataChannel 처리 오류:", e)
 
     await pc.setRemoteDescription(RTCSessionDescription(sdp=sdp, type="offer"))
     answer = await pc.createAnswer()
     await pc.setLocalDescription(answer)
 
-    await websocket.send_text(json.dumps({"type": "answer", "sdp": pc.localDescription.sdp}))
+    await websocket.send_text(json.dumps({ "type": "answer", "sdp": pc.localDescription.sdp }))
     return pc, track_ref
 
 async def add_ice_candidate(pc, msg):
