@@ -22,7 +22,7 @@ class HandGame:
         frame = cv2.imdecode(np_img, cv2.IMREAD_COLOR)
 
         # 좌우 반전: 클라이언트 좌표(fallingX)와 일치시키기 위해
-        frame = cv2.flip(frame, 1)
+        # frame = cv2.flip(frame, 1)
 
         falling_x = parsed["target"]["x"]
         falling_y = parsed["target"]["y"]

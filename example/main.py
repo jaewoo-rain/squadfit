@@ -3,8 +3,8 @@ from fastapi import FastAPI, WebSocket
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
-from hand_game import HandGame
-from socket_handler import WebSocketGameHandler
+from server.hand_game import HandGame
+from server.socket_handler import WebSocketGameHandler
 
 app = FastAPI()
 
