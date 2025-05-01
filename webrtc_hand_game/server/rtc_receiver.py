@@ -17,7 +17,7 @@ class InferenceTrack(VideoStreamTrack):
         self.falling_x = 320
         self.falling_y = 100
         self.last_time = None
-        self.speed = 200  # 픽셀/초
+        self.speed = 10  # 픽셀/초
 
     def set_target(self, x, y):
         self.falling_x = x
