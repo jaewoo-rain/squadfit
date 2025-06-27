@@ -32,3 +32,4 @@ sequelize
   .catch((err) => {
     console.error("DB 연결 또는 동기화 실패", err);
   });
+ㅋ
