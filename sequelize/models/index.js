@@ -7,7 +7,7 @@ db.Sequelize = Sequelize;
 db.sequelize = sequelize;
 
 // 모델 불러오기
-db.User = require("./User")(sequelize, Sequelize.DataTypes);
+db.User = require("./User")(sequelize, Sequelize.DataT-9ypes);
 db.ExerciseRecord = require("./ExerciseRecord")(sequelize, Sequelize.DataTypes);
 db.ExerciseType = require("./ExerciseType")(sequelize, Sequelize.DataTypes);
 db.MatchRecord = require("./MatchRecord")(sequelize, Sequelize.DataTypes);

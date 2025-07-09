@@ -10,6 +10,10 @@ module.exports = (sequelize, DataTypes) => {
       name: DataTypes.STRING,
       login_id: DataTypes.STRING,
       password: DataTypes.STRING,
+      height: DataTypes.FLOAT,
+      weight: DataTypes.FLOAT,
+      gender: DataTypes.STRING,
+      age: DataTypes.INTEGER,
     },
     {
       tableName: "user",
@@ -21,13 +25,10 @@ module.exports = (sequelize, DataTypes) => {
   User.associate = (models) => {
     User.hasMany(models.ExerciseRecord, { foreignKey: "user_id" });
     User.hasMany(models.MatchRecord, { foreignKey: "user_id" });
+    User.hasMany(models.BestExerciseRecord, { foreignKey: "user_id" });
     User.hasMany(models.MatchRecord, {
       foreignKey: "enemy_user_id",
       as: "EnemyMatches",
-    });
-    User.belongsToMany(models.ExerciseRecord, {
-      through: models.BestExerciseRecord,
-      foreignKey: "user_id",
     });
   };
 
