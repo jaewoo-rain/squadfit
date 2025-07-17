@@ -16,7 +16,6 @@
     "url": "https://github.com/jaewoo-rain/squadfit/issues"
   },
   "homepage": "https://github.com/jaewoo-rain/squadfit#readme",
-  "description": "",
   "devDependencies": {
     "nodemon": "^3.1.10"
   },
@@ -32,5 +31,6 @@
     "reflect-metadata": "^0.2.2",
     "sequelize": "^6.37.7",
     "typeorm": "^0.3.25"
-  }
+  },
+  "description": ""
 }
