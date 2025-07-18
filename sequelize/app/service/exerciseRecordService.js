@@ -63,7 +63,7 @@ const 단건조회 = async (exercise_record_id) => {
 const 종목별조회 = async (exercise_type_id, user_id) => {
   const records = await exerciseRecordRepository.findByType(exercise_type_id, user_id)
     if (!records || records.length === 0) {
-    throw new Error("존재하지 않는 ID입니다.");
+    throw new Error("등록된 기록이 없습니다");
   }
 
   // DTO 변환

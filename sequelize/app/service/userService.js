@@ -2,7 +2,7 @@ const bcrypt = require("bcrypt");
 const userRepository = require("../repository/userRepository");
 
 const 회원가입 = async (userData) => {
-  const existing = await userRepository.findByLoginId(userData.login_id);
+  const existing = await userRepository.findByLoginId(userData.username);
 
   if (existing) throw new Error("이미 존재하는 ID 입니다");
 
@@ -10,8 +10,8 @@ const 회원가입 = async (userData) => {
   return await userRepository.createUser({ ...userData, password: hashed });
 };
 
-const 로그인 = async (login_id, password) => {
-  const user = await userRepository.findByLoginId(login_id);
+const 로그인 = async (username, password) => {
+  const user = await userRepository.findByLoginId(username);
   if (!user) throw new Error("존재하지 않는 ID입니다.");
 
   const isValid = await bcrypt.compare(password, user.password);

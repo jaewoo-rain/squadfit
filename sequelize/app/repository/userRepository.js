@@ -1,14 +1,14 @@
 const { sequelize, User } = require("./../models");
 
 // 로그인 아이디로 유저 찾기
-const findByLoginId = async (login_id) => {
-  return await User.findOne({ where: { login_id: login_id } });
+const findByLoginId = async (username) => {
+  return await User.findOne({ where: { username: username } });
 };
 
 // 유저 생성
 /**
  * userData = {
- *  login_id: user1
+ *  username: user1
  *  password: 1234
  *  age : 20
  *  ...

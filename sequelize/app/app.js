@@ -2,11 +2,13 @@
 const express = require("express");
 const cors = require("cors");
 const app = express();
+const { swaggerUi, specs } = require("./config/swaggerConfig");
 
 // 미들웨어 설정
 app.use(cors());
 app.use(express.json()); // JSON 본문 파싱
 app.use(express.urlencoded({ extended: true })); // 폼 데이터 파싱
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 
 // 라우터 불러오기
 const userRouter = require("./routes/userRouter");

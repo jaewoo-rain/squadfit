@@ -1,6 +1,6 @@
 class UserRegisterDto {
   constructor(body) {
-    this.login_id = body.login_id;
+    this.username = body.username;
     this.password = body.password;
     this.name = body.name;
     this.age = body.age;
@@ -12,7 +12,7 @@ class UserRegisterDto {
   }
 
   validate() {
-    if (!this.login_id || !this.password || !this.name) {
+    if (!this.username || !this.password || !this.name) {
       throw new Error("필수 항목이 누락되었습니다.");
     }
 

@@ -1,6 +1,9 @@
 const requestSavaRecordDto = require("../dto/requestSavaRecordDto");
 const exerciseRecordService = require("./../service/exerciseRecordService");
 
+
+// localhost:8080/api/exerciseRecords/saveRecord
+
 /**
  * {
     "user_id":"1",
@@ -53,10 +56,11 @@ const searchById = async (req, res) => {
   }
 };
 
+// localhost:8080/api/exerciseRecords/searchType/:exercise_type/:user_id
 // 종목별 조회
 const searchByType = async (req, res) => {
   try{
-    const result = await exerciseRecordService.종목별조회(req.params.exercise_type, req.params.id)
+    const result = await exerciseRecordService.종목별조회(req.params.exercise_type, req.params.user_id)
     res.json({ message: "종목별 조회 성공", record: result });
   }catch(err){
     res.status(401).json({message: err.message})

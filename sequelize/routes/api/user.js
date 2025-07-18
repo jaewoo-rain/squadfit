@@ -26,8 +26,8 @@ router.get("/:id", async (req, res) => {
 // [POST] 유저 생성
 router.post("/", async (req, res) => {
   try {
-    const { name, login_id, password } = req.body;
-    const newUser = await User.create({ name, login_id, password });
+    const { name, username, password } = req.body;
+    const newUser = await User.create({ name, username, password });
     res.status(201).json(newUser);
   } catch (err) {
     res.status(500).json({ message: "유저 생성 실패", error: err.message });
@@ -37,9 +37,9 @@ router.post("/", async (req, res) => {
 // [PUT] 유저 수정
 router.put("/:id", async (req, res) => {
   try {
-    const { name, login_id, password } = req.body;
+    const { name, username, password } = req.body;
     const [updated] = await User.update(
-      { name, login_id, password },
+      { name, username, password },
       { where: { user_id: req.params.id } }
     );
     if (updated) {

@@ -5,7 +5,7 @@ const userService = require("./../service/userService");
 //localhost:8080/api/users/register
 /**
  * {
-    "login_id" : "user2",
+    "username" : "user2",
     "password" : "1234",
     "name" : "kim",
     "age" : 30,
@@ -27,13 +27,13 @@ const register = async (req, res) => {
 // localhost:8080/api/users/login
 /**
  * {
-    "login_id" : "user2",
+    "username" : "user2",
     "password" : "1234"
  * }
  */
 const login = async (req, res) => {
   try {
-    const user = await userService.로그인(req.body.login_id, req.body.password);
+    const user = await userService.로그인(req.body.username, req.body.password);
     const dto = new UserLoginDto(user);
 
     // jwt 토큰 발행 코드 추가해야함
