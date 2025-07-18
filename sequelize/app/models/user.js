@@ -24,7 +24,7 @@ module.exports = (sequelize, DataType) => {
   // 연관관계
   User.associate = (models) => {
     User.hasMany(models.ExerciseRecord, { foreignKey: "user_id" });
+    User.hasMany(models.BestExerciseRecord, { foreignKey: "user_id"})
   };
-
   return User;
 };

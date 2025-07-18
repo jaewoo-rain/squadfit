@@ -1,6 +1,7 @@
 class responseSaveRecordDto {
   constructor(body) {
     this.exercise_record_id = body.exercise_record_id;
+    this.message = body.message
     // this.user_id = body.user_id;
     // this.name = body.name;
     // this.age = body.age;

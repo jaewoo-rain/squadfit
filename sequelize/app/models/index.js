@@ -11,6 +11,7 @@ db.sequelize = sequelize;
 db.User = require("./user")(sequelize, Sequelize.DataTypes);
 db.ExerciseRecord = require("./exerciseRecord")(sequelize, Sequelize.DataTypes);
 db.ExerciseType = require("./exerciseType")(sequelize, Sequelize.DataTypes);
+db.BestExerciseRecord = require("./bestExerciseRecord")(sequelize, Sequelize.DataTypes)
 
 // 관계 설정 수행
 Object.keys(db).forEach((modelName) => {

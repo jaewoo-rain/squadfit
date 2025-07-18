@@ -11,8 +11,10 @@ app.use(express.urlencoded({ extended: true })); // 폼 데이터 파싱
 // 라우터 불러오기
 const userRouter = require("./routes/userRouter");
 const exerciseRecordRouter = require("./routes/exerciseRecordRouter");
+const besetExerciseRecordRouter = require("./routes/bestExerciseRecordRouter");
 app.use("/api/users", userRouter);
 app.use("/api/exerciseRecords", exerciseRecordRouter);
+app.use("/api/bestExerciseRecords",besetExerciseRecordRouter);
 
 // 기본 루트
 app.get("/", (req, res) => {

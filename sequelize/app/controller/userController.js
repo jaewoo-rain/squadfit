@@ -2,6 +2,18 @@ const UserLoginDto = require("../dto/userLoginDto");
 const UserRegisterDto = require("../dto/userRegisterDto");
 const userService = require("./../service/userService");
 
+//localhost:8080/api/users/register
+/**
+ * {
+    "login_id" : "user2",
+    "password" : "1234",
+    "name" : "kim",
+    "age" : 30,
+    "height": 300,
+    "weight": 200,
+    "gender" : "M"
+ * }
+ */
 const register = async (req, res) => {
   try {
     const dto = new UserRegisterDto(req.body);
@@ -12,6 +24,13 @@ const register = async (req, res) => {
   }
 };
 
+// localhost:8080/api/users/login
+/**
+ * {
+    "login_id" : "user2",
+    "password" : "1234"
+ * }
+ */
 const login = async (req, res) => {
   try {
     const user = await userService.로그인(req.body.login_id, req.body.password);

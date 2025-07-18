@@ -15,9 +15,13 @@ const exerciseRecordService = require("./../service/exerciseRecordService");
 const saveRecord = async (req, res) => {
   try {
     const dto = new requestSavaRecordDto(req.body);
-    const result = await exerciseRecordService.저장하기(dto);
+    const exercise_record_id = await exerciseRecordService.저장하기(dto);
+
+
+
+
     // console.log(result);
-    res.status(201).json({ result: result });
+    res.status(201).json({ result: exercise_record_id });
   } catch (err) {
     res.status(400).json({ message: err.message });
   }

@@ -23,9 +23,13 @@ module.exports = (sequelize, DataTypes) => {
   );
 
   ExerciseRecord.associate = (models) => {
-    ExerciseRecord.belongsTo(models.User, { foreignKey: "user_id" });
+    ExerciseRecord.belongsTo(models.User, { 
+      foreignKey: "user_id",
+      onDelete: 'CASCADE',
+    });
     ExerciseRecord.belongsTo(models.ExerciseType, {
       foreignKey: "exercise_type_id",
+      onDelete: 'CASCADE',
     });
   };
 

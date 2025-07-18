@@ -2,6 +2,7 @@ const responseRecordDto = require("../dto/responseRecordDto");
 const responseSaveRecordDto = require("../dto/responseSaveRecordDto");
 const exerciseRecordRepository = require("../repository/exerciseRecordRepository");
 const exerciseTypeRepository = require("../repository/exerciseTypeRepository");
+const bestExerciseRecordService = require("./../service/bestExerciseRecordService");
 
 const 저장하기 = async (requestSavaRecordDto) => {
   // this.exercise_type_id = body.exercise_type_id;
@@ -9,7 +10,6 @@ const 저장하기 = async (requestSavaRecordDto) => {
     requestSavaRecordDto.exercise_name
   );
 
-  console.log(exercise_type_id);
   const volumn =
     requestSavaRecordDto.weight * requestSavaRecordDto.repeat_number;
 
@@ -18,9 +18,17 @@ const 저장하기 = async (requestSavaRecordDto) => {
     volumn: volumn,
     exercise_type_id: exercise_type_id,
   });
+
+  // 최고기록 갱신
+  // user_id, exercise_type_id, volumn, exercise_record_id
+  const message = await bestExerciseRecordService.기록갱신(
+    result.dataValues.user_id, 
+    result.dataValues.exercise_type_id, 
+    result.dataValues.volumn, 
+    result.dataValues.exercise_record_id);
   
   // console.log(result);
-  return new responseSaveRecordDto(result);
+  return new responseSaveRecordDto({...result.dataValues, message : message});
 };
 
 const 전체조회 = async (user_id) => {
