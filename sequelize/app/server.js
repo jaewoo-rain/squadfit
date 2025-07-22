@@ -1,8 +1,7 @@
-// server.js
 const app = require("./app");
 const { sequelize } = require("./models");
 
-const PORT = 8080;
+const PORT = 3000;
 
 (async () => {
   try {
@@ -14,8 +13,8 @@ const PORT = 8080;
       })
       .then(() => {
         console.log("테이블 동기화 완료");
-        app.listen(8080, () => {
-          console.log("서버연결 성공 http://localhost:8080");
+        app.listen(PORT, () => {
+          console.log("서버연결 성공 http://localhost:3000");
         });
       })
       .catch((err) => {

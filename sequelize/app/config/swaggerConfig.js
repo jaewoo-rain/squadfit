@@ -1,24 +1,27 @@
-const swaggerJsDoc = require("swagger-jsdoc");
-const swaggerUi = require("swagger-ui-express");
+// config/swaggerConfig.js
+const swaggerJSDoc = require('swagger-jsdoc');
+const swaggerUi = require('swagger-ui-express');
 
-const options = {
+const specs = swaggerJSDoc({
   definition: {
-    openapi: "3.0.0",
+    openapi: '3.0.0',
     info: {
-      title: "SquadFit API",
-      version: "1.0.0",
-      description: "스쿼드핏 API 명세서입니다",
+      title: 'SquadFit API',
+      version: '1.0.0',
+      description: '운동 기록 관련 API 문서입니다.',
     },
     servers: [
       {
-        url: "http://localhost:8080",
-        description: "로컬 서버",
+        url: 'http://localhost:3000',
+        description: '개발 서버',
       },
     ],
   },
-  apis: ["./routes/*.js", "./controller/*.js", "./dto/*.js"], // JSDoc 주석 작성 파일들
+    apis: ['./routes/*.js'],// 주석 문서화 하지 않을 경우 빈 배열
+});
+
+
+module.exports = {
+  swaggerUi,
+  specs,
 };
-
-const specs = swaggerJsDoc(options);
-
-module.exports = { swaggerUi, specs };

@@ -5,7 +5,7 @@ const exerciseTypeRepository = require("../repository/exerciseTypeRepository");
 const bestExerciseRecordService = require("./../service/bestExerciseRecordService");
 
 const 저장하기 = async (requestSavaRecordDto) => {
-  // this.exercise_type_id = body.exercise_type_id;
+  // 운동 이름을 type_id로 변경
   const exercise_type_id = await exerciseTypeRepository.findByName(
     requestSavaRecordDto.exercise_name
   );
