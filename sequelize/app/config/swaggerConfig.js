@@ -1,4 +1,3 @@
-// config/swaggerConfig.js
 const swaggerJSDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 
@@ -20,6 +19,7 @@ const specs = swaggerJSDoc({
     apis: ['./routes/*.js'],// 주석 문서화 하지 않을 경우 빈 배열
 });
 
+// http://localhost:3000/api-docs/
 
 module.exports = {
   swaggerUi,
